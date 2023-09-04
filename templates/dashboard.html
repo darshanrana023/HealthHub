@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Data Dashboard</title>
+    <!-- Add Bootstrap CSS (you might need to adjust the paths) -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Health Data Dashboard</h1>
+
+        <!-- File Upload Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                Upload Health Data
+            </div>
+            <div class="card-body">
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="data_file">Choose a data file (CSV, Excel, etc.):</label>
+                        <input type="file" class="form-control-file" id="data_file" name="data_file" accept=".csv, .xlsx">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Display Health Data Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                Your Health Data
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Heart Rate</th>
+                            <th>Sleep Patterns</th>
+                            <th>Exercise Logs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data_entry in health_data %}
+                        <tr>
+                            <td>{{ data_entry.date }}</td>
+                            <td>{{ data_entry.heart_rate }}</td>
+                            <td>{{ data_entry.sleep_patterns }}</td>
+                            <td>{{ data_entry.exercise_logs }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS (you might need to adjust the paths) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -50,31 +50,31 @@
             class="img-fluid" alt="Sample image">
         </div>
         <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-          <form>
+          <form action="/register" method="POST">
             <div class="divider d-flex align-items-center my-4">
               <h3 class="text-center fw-bold mx-3 mb-0">Registeration</h3>
             </div>
             <div class="form-outline mb-4">
-                <input type="text" id="name" class="form-control form-control-lg"
+                <input type="text" name="name" id="name" class="form-control form-control-lg"
                   placeholder="Enter a valid name" required />
                 <label class="form-label" for="name">Name</label>
               </div>
               <div class="form-outline mb-4">
-                <input type="tel" id="phone" class="form-control form-control-lg" minlength="10"
+                <input type="tel" name="phone" id="phone" class="form-control form-control-lg" minlength="10"
                  required
                   placeholder="Enter a valid name" />
                 <label class="form-label" for="phone">Mobile No.</label>
               </div>
             <!-- Email input -->
             <div class="form-outline mb-4">
-              <input type="email" id="email" class="form-control form-control-lg"
+              <input type="email"  name="email" id="email" class="form-control form-control-lg"
                 placeholder="Enter a valid email address" required/>
               <label class="form-label" for="email">Email address</label>
             </div>
   
             <!-- Password input -->
             <div class="form-outline mb-3">
-              <input type="password" id="password" class="form-control form-control-lg"
+              <input type="password" name="password" id="password" class="form-control form-control-lg"
                 placeholder="Enter password" required />
               <label class="form-label" for="password">Password</label>
             </div>
@@ -87,8 +87,8 @@
   
             <div class="text-center text-lg-start mt-4 pt-2">
               <button type="submit" class="btn btn-primary btn-lg"
-                style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button>
-              <p class="small fw-bold mt-2 pt-1 mb-0">No need of registeration <a href="home.html"
+                style="padding-left: 2.5rem; padding-right: 2.5rem;">Register</button>
+              <p class="small fw-bold mt-2 pt-1 mb-0">Already a user? <a href="/"
                   class="link-danger">Login</a></p>
             </div>
           </form>
