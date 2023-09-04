@@ -5,7 +5,7 @@ app=Flask(__name__)
 def hello():
     return 'Hello World!'
 
-@app.route('home')
+@app.route('/home')
 def home():
     return render_template('home.html')
 
