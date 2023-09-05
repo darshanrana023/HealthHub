@@ -26,15 +26,49 @@
 </nav>
 <div class="container mt-5">
     <h1>Welcome to HealthHub Dashboard</h1>
-    <h2>Upload Health Data</h2>
-    <form action="/dashboard" method="POST" enctype="multipart/form-data">
-   
-        <div class="form-group">
-            <label for="dataFile">Select a CSV File:</label>
-            <input type="file" class="form-control-file" id="dataFile" name="dataFile" accept=".csv" required>
+  <hr>
+    <!-- Health Data Entry Form -->
+    <h2>Enter Health Data</h2>
+    <hr>
+    <form action="/dashboard" method="POST">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="heartRate">Heart Rate (bpm):</label>
+                <input type="number" class="form-control" id="heartRate" name="heartRate" required>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="bloodPressure">Blood Pressure:</label>
+                <input type="text" class="form-control" id="bloodPressure" name="bloodPressure" required>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Upload Data</button>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="stressLevel">Stress Level (20-80):</label>
+                <input type="text" class="form-control" id="stressLevel" name="stressLevel" required>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="weight">Weight (kg):</label>
+                <input type="number" class="form-control" id="weight" name="weight" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="date">Date:</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="time">Time:</label>
+                <input type="time" class="form-control" id="time" name="time" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Health Data</button>
     </form>
+    <hr>
+ 
+<form action="/download_csv" method="POST">
+    <button type="submit" class="btn btn-primary">Download CSV</button>
+</form>
+
     <hr>
     <h2>Your Health Data</h2>
     <div class="table-responsive">
@@ -43,23 +77,28 @@
             <tr>
                 <th>Date</th>
                 <th>Heart Rate</th>
-                <th>Sleep Patterns</th>
-                <th>Exercise Logs</th>
+                <th>Blood Pressure</th>
+                <th>Stress Level</th>
+                <th>Weight</th>
+                <th>Time</th>
             </tr>
             </thead>
             <tbody>
             {% for data in health_data %}
             <tr>
-                <td>{{ data['Date'] }}</td>
-                <td>{{ data['Heart Rate'] }}</td>
-                <td>{{ data['Sleep Patterns'] }}</td>
-                <td>{{ data['Exercise Logs'] }}</td>
+                <td>{{ data.date }}</td>
+                <td>{{ data.heart_rate }}</td>
+                <td>{{ data.blood_pressure }}</td>
+                <td>{{ data.stress_level }}</td>
+                <td>{{ data.weight }}</td>
+                <td>{{ data.time }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

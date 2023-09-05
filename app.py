@@ -1,8 +1,10 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, Response
 # from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+import csv
+from io import StringIO
 
 # from sqlalchemy.sql import func
 # import secrets
@@ -14,6 +16,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "my_secret_key"
 db = SQLAlchemy(app)
 
+#users database
 class USERS(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
@@ -24,6 +27,19 @@ class USERS(db.Model):
     def __repr__(self):
         return f'<Email {self.email}>'
 
+#health data of users
+class HealthData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    heart_rate = db.Column(db.Integer, nullable=False)
+    blood_pressure = db.Column(db.String(255), nullable=False)
+    stress_level = db.Column(db.String(255), nullable=False)
+    weight = db.Column(db.Float, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False)
+
+    def __repr__(self):
+        return f'<HealthData {self.id}>'
 
 
 @app.route('/')
@@ -67,44 +83,69 @@ def login():
             return redirect(url_for('login.html'))  # Redirect to the login page
 
     return render_template('login.html')
-# Define a route for the dashboard
-# @app.route('/dashboard', methods=['GET', 'POST'])
-# def dashboard():
-#     if 'email' in session:
-#         user = User.query.filter_by(email=session['email']).first()
 
-#         if request.method == 'POST':
-#             data_file = request.files['dataFile']
-#             if data_file:
-#                 filename = secure_filename(data_file.filename)
-#                 data_file.save(filename)
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    email = session.get('email')
+    if email:
+        user = USERS.query.filter_by(email=email).first()
+        if request.method == 'POST':
+            # Collect health data from the form
+            heart_rate = request.form.get('heartRate')
+            blood_pressure = request.form.get('bloodPressure')
+            stress_level = request.form.get('stressLevel')
+            weight = request.form.get('weight')
+            date = request.form.get('date')
+            time = request.form.get('time')
 
-#                 # Assuming the CSV file has columns: 'Date', 'Heart Rate', 'Sleep Patterns', 'Exercise Logs'
-#                 health_data_df = pd.read_csv(filename)
-#                 health_data = health_data_df.to_dict(orient='records')
+            # Create a new HealthData entry and associate it with the user
+            health_data = HealthData(
+                user_id=user.id,
+                heart_rate=heart_rate,
+                blood_pressure=blood_pressure,
+                stress_level=stress_level,
+                weight=weight,
+                date=date,
+                time=time
+            )
+            db.session.add(health_data)
+            db.session.commit()
+    
+        # Retrieve the user's health data
+        health_data = HealthData.query.filter_by(user_id=user.id).all()
+        return render_template('dashboard.html', user=user, health_data=health_data)
 
-#                 # You can save this data to the user's specific file or database
-#                 # For simplicity, we're just storing it in memory in this example
-#                 user.health_data = health_data
-#                 db.session.commit()
+    return redirect(url_for('login'))
+ 
+@app.route('/download_csv', methods=['POST'])
+def download_csv():
+    email = session.get('email')
+    if email:
+        user = USERS.query.filter_by(email=email).first()
+        if user:
+            health_data = HealthData.query.filter_by(user_id=user.id).all()
 
-#         else:
-#             health_data = user.health_data or []
+            # Create a CSV string from the health data
+            csv_data = StringIO()
+            csv_writer = csv.writer(csv_data)
+            csv_writer.writerow(['Date', 'Heart Rate', 'Blood Pressure', 'Stress Level', 'Weight', 'Time'])
+            for data in health_data:
+                csv_writer.writerow([data.date, data.heart_rate, data.blood_pressure, data.stress_level, data.weight, data.time])
 
-#         return render_template('dashboard.html', user=user, health_data=health_data)
+            # Create a Flask response with the CSV data
+            response = Response(
+                csv_data.getvalue(),
+                content_type='text/csv',
+            )
+            response.headers["Content-Disposition"] = f"attachment; filename=health_data.csv"
+            return response
 
-#     return redirect(url_for('login')) 
-
+    return redirect(url_for('login'))
 # Route for user logout
 @app.route('/logout')
 def logout():
     session.pop('email', None)
-    return render_template('home.html')
-
-# Route to display a registration success page
-# @app.route('/registration-success')
-# def registration_success():
-#     return "Registration successful!"
+    return render_template('login.html')
 
 if __name__ == '__main__':
     # # Create the database tables
