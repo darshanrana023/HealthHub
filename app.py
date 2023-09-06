@@ -5,12 +5,17 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 import csv
 from io import StringIO
-
+from datetime import datetime
 # from sqlalchemy.sql import func
 # import secrets
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+
+#initialize flask app
 app = Flask(__name__)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+#connection with the databse of xampp mysql
 app.config['SQLALCHEMY_DATABASE_URI'] ='mysql://darshan029:D%40rsh%40n029@localhost:3306/healthub'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "my_secret_key"
@@ -41,7 +46,7 @@ class HealthData(db.Model):
     def __repr__(self):
         return f'<HealthData {self.id}>'
 
-
+# Routes
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -137,10 +142,14 @@ def download_csv():
                 csv_data.getvalue(),
                 content_type='text/csv',
             )
-            response.headers["Content-Disposition"] = f"attachment; filename=health_data.csv"
+
+            # Set the filename based on the user's name and date
+            filename = f"{user.name}_{datetime.today().strftime('%Y-%m-%d')}_health_data.csv"
+            response.headers["Content-Disposition"] = f"attachment; filename={filename}"
             return response
 
     return redirect(url_for('login'))
+
 # Route for user logout
 @app.route('/logout')
 def logout():
