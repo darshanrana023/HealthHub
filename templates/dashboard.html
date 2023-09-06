@@ -25,7 +25,7 @@
     </div>
 </nav>
 <div class="container mt-5">
-    <h1>Welcome to HealthHub Dashboard</h1>
+    <h1>Welcome to HealthHub Dashboard, {{ user.name }}
   <hr>
     <!-- Health Data Entry Form -->
     <h2>Enter Health Data</h2>
@@ -96,6 +96,18 @@
             {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <hr>
+    <h2>Health Data Visualization</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Include your health data visualization here using an <img> tag -->
+            <img src="/static/temp_plot.png" alt="Health Data Plot">
+        </div>
+        <div class="col-md-6">
+            <!-- You can add more visualizations here if needed -->
+        </div>
     </div>
 </div>
 
