@@ -1,18 +1,20 @@
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from flask import Flask, render_template, request, redirect, url_for, session, Response
+from flask import Flask, render_template, request, redirect, url_for, session, Response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 import csv
 from io import StringIO
 from datetime import datetime
+from flask import make_response
+
 
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-app.config['SQLALCHEMY_DATABASE_URI'] ='mysql://darshan029:D%40rsh%40n029@localhost:3306/healthub'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://darshan029:D%40rsh%40n029@localhost:3306/healthub'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "my_secret_key"
 db = SQLAlchemy(app)
@@ -52,7 +54,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         new_user = USERS(name=name, phone=phone, email=email, password=password)
-        
+
         try:
             with app.app_context():
                 db.session.add(new_user)
@@ -63,7 +65,7 @@ def register():
 
     return render_template('register.html')
 
-@app.route('/login', methods=['POST','GET'])
+@app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -71,9 +73,7 @@ def login():
         user = USERS.query.filter_by(email=email, password=password).first()
         if user:
             session['email'] = email
-            return render_template('dashboard.html', user=user)
-        else:
-            return redirect(url_for('login'))
+            return redirect(url_for('dashboard'))
 
     return render_template('login.html')
 
@@ -101,12 +101,13 @@ def dashboard():
             )
             db.session.add(health_data)
             db.session.commit()
-    
+
         health_data = HealthData.query.filter_by(user_id=user.id).all()
 
         plot_filename = create_health_data_plot(health_data)
 
-        return render_template('dashboard.html', user=user, health_data=health_data, plot_filename=plot_filename)
+        return render_template('dashboard.html', user=user, health_data=health_data,
+                               plot_filename=plot_filename)
 
     return redirect(url_for('login'))
 
@@ -135,20 +136,55 @@ def download_csv():
 
     return redirect(url_for('login'))
 
+@app.route('/static/<filename>')
+def serve_static(filename):
+    response = make_response(send_from_directory('static', filename))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 def create_health_data_plot(health_data):
+    # Extract relevant data for the plots
     dates = [data.date for data in health_data]
     heart_rates = [data.heart_rate for data in health_data]
+    weights = [data.weight for data in health_data]
+    blood_pressures = [data.blood_pressure for data in health_data]
 
-    sns.set(style="whitegrid")
-    plt.figure(figsize=(10, 6))
-    plt.title("Heart Rate Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Heart Rate (bpm)")
-    sns.lineplot(x=dates, y=heart_rates, marker='o', label='Heart Rate')
-    plt.xticks(rotation=45)
-    plt.legend()
+    # Create subplots
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Plot Heart Rate Over Time
+    axes[0, 0].set_title("Heart Rate Over Time")
+    axes[0, 0].set_xlabel("Date")
+    axes[0, 0].set_ylabel("Heart Rate (bpm)")
+    axes[0, 0].tick_params(axis='x', rotation=90)
+    sns.lineplot(x=dates, y=heart_rates, ax=axes[0, 0])
+
+    # Plot Weight Over Time
+    axes[0, 1].set_title("Weight Over Time")
+    axes[0, 1].set_xlabel("Date")
+    axes[0, 1].set_ylabel("Weight (kg)")
+    axes[0, 1].tick_params(axis='x', rotation=90)
+    sns.lineplot(x=dates, y=weights, ax=axes[0, 1])
+
+    # Plot Blood Pressure Over Time
+    axes[1, 0].set_title("Blood Pressure Over Time")
+    axes[1, 0].set_xlabel("Date")
+    axes[1, 0].set_ylabel("Blood Pressure")
+    axes[1, 0].tick_params(axis='x', rotation=90)
+    sns.lineplot(x=dates, y=blood_pressures, ax=axes[1, 0])
+
+    # Plot Relationship Between Heart Rate and Weight
+    axes[1, 1].set_title("Relationship: Heart Rate vs. Weight")
+    axes[1, 1].set_xlabel("Heart Rate (bpm)")
+    axes[1, 1].set_ylabel("Weight (kg)")
+    axes[1, 0].tick_params(axis='x', rotation=90)
+    sns.scatterplot(x=heart_rates, y=weights, ax=axes[1, 1])
+
     plt.tight_layout()
 
+    # Save the plot to a temporary file
     plot_filename = "static/temp_plot.png"
     plt.savefig(plot_filename)
 
@@ -157,7 +193,7 @@ def create_health_data_plot(health_data):
 @app.route('/logout')
 def logout():
     session.pop('email', None)
-    return render_template('login.html')
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     with app.app_context():

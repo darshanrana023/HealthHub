@@ -5,25 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>HealthHub Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .visualization-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .visualization {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        .visualization h3 {
+            margin-top: 0;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">HealthHub</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/logout">Logout</a>
-            </li>
-        </ul>
-    </div>
-</nav>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">HealthHub</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 <div class="container mt-5">
     <h1>Welcome to HealthHub Dashboard, {{ user.name }}
   <hr>
@@ -70,6 +85,14 @@
 </form>
 
     <hr>
+    <h2>Health Data Visualization</h2>
+    <div class="visualization-container">
+        <div class="visualization">
+            <h3>Health Data Plot</h3>
+            <img src="/static/temp_plot.png?{{ timestamp }}" alt="Health Data Plot">
+        </div>
+    </div>
+    <hr>
     <h2>Your Health Data</h2>
     <div class="table-responsive">
         <table class="table table-bordered">
@@ -98,17 +121,6 @@
         </table>
     </div>
 
-    <hr>
-    <h2>Health Data Visualization</h2>
-    <div class="row">
-        <div class="col-md-6">
-            <!-- Include your health data visualization here using an <img> tag -->
-            <img src="/static/temp_plot.png" alt="Health Data Plot">
-        </div>
-        <div class="col-md-6">
-            <!-- You can add more visualizations here if needed -->
-        </div>
-    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
