@@ -97,28 +97,34 @@
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
-            <tr>
-                <th>Date</th>
-                <th>Heart Rate</th>
-                <th>Blood Pressure</th>
-                <th>Stress Level</th>
-                <th>Weight</th>
-                <th>Time</th>
-            </tr>
+                <tr>
+                    <th>Date</th>
+                    <th>Heart Rate (bpm)</th>
+                    <th>Blood Pressure</th>
+                    <th>Stress Level</th>
+                    <th>Weight (kg)</th>
+                    <th>Time</th>
+                    <th>Health Status</th>  <!-- Add a new column for Health Status -->
+                </tr>
             </thead>
             <tbody>
-            {% for data in health_data %}
-            <tr>
-                <td>{{ data.date }}</td>
-                <td>{{ data.heart_rate }}</td>
-                <td>{{ data.blood_pressure }}</td>
-                <td>{{ data.stress_level }}</td>
-                <td>{{ data.weight }}</td>
-                <td>{{ data.time }}</td>
-            </tr>
-            {% endfor %}
+                {% for data, status in zipped_data %}
+                <tr>
+                    <td>{{ data.date }}</td>
+                    <td>{{ data.heart_rate }}</td>
+                    <td>{{ data.blood_pressure }}</td>
+                    <td>{{ data.stress_level }}</td>
+                    <td>{{ data.weight }}</td>
+                    <td>{{ data.time }}</td>
+                    <td>{{ status }}</td>  <!-- Display the calculated Health Status -->
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
+        
+
+        
+        
     </div>
 
 </div>
