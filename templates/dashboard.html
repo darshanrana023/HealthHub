@@ -95,36 +95,33 @@
     <hr>
     <h2>Your Health Data</h2>
     <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Heart Rate (bpm)</th>
-                    <th>Blood Pressure</th>
-                    <th>Stress Level</th>
-                    <th>Weight (kg)</th>
-                    <th>Time</th>
-                    <th>Health Status</th>  <!-- Add a new column for Health Status -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for data, status in zipped_data %}
-                <tr>
-                    <td>{{ data.date }}</td>
-                    <td>{{ data.heart_rate }}</td>
-                    <td>{{ data.blood_pressure }}</td>
-                    <td>{{ data.stress_level }}</td>
-                    <td>{{ data.weight }}</td>
-                    <td>{{ data.time }}</td>
-                    <td>{{ status }}</td>  <!-- Display the calculated Health Status -->
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-
-        
-        
+       <!-- Inside your dashboard.html template -->
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Heart Rate</th>
+            <th>Blood Pressure</th>
+            <th>Stress Level</th>
+            <th>Weight</th>
+            <th>Time</th>
+            <th>Predicted Risk</th>  <!-- New column for predicted risks -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for data, predicted_risk in zipped_data %}
+        <tr>
+            <td>{{ data.date }}</td>
+            <td>{{ data.heart_rate }}</td>
+            <td>{{ data.blood_pressure }}</td>
+            <td>{{ data.stress_level }}</td>
+            <td>{{ data.weight }}</td>
+            <td>{{ data.time }}</td>
+            <td>{{ predicted_risk }}</td>  <!-- Display predicted risk here -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
     </div>
 
 </div>

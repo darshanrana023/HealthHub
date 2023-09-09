@@ -12,32 +12,27 @@ from datetime import datetime, time
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import tensorflow
+from tensorflow import keras
 
-# from app import db
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "my_secret_key"
 
-# app = Flask(__name__)
-# from app import db
-# # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthub.db'  # Use SQLite database
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SECRET_KEY'] = "my_secret_key"
-# basedir = os.path.abspath(os.path.dirname(__file__))
-# # app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
-
-
-# # Configure the SQLAlchemy database URI to store the database file in the base directory
-# # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
 db = SQLAlchemy(app)
 static_folder = os.path.join(os.path.dirname(__file__), 'static')
 
 # Create the SQLAlchemy instance if it doesn't exist
 if 'db' not in locals():
     db = SQLAlchemy(app)
+
+# Define your predictive model here and load the trained model
+
+# Load your pre-trained model
+model = keras.models.load_model('your_model_path')  # Update with your model path
+scaler = StandardScaler()  # Use the same scaler as in training
 
 class USERS(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -112,12 +107,9 @@ def dashboard():
             stress_level = request.form.get('stressLevel')
             weight = request.form.get('weight')
             date_str = request.form.get('date')
-            time_str = request.form.get('time')  # Get time as a string
+            time_str = request.form.get('time')
 
-            # Convert date string to a Python date object
             date = datetime.strptime(date_str, '%Y-%m-%d').date()
-
-            # Convert time string to a Python time object
             time = datetime.strptime(time_str, '%H:%M').time()
 
             health_data = HealthData(
@@ -127,23 +119,21 @@ def dashboard():
                 stress_level=stress_level,
                 weight=weight,
                 date=date,
-                time=time,  # Use the converted time
+                time=time,
             )
             db.session.add(health_data)
             db.session.commit()
 
         health_data = HealthData.query.filter_by(user_id=user.id).all()
 
-        # Calculate health status for each data point
         health_status_list = []
         for data in health_data:
-            # Implement your health status calculation logic here
-            # For example, you can use your predictive model to determine health status
-            # and store it in the health_status_list
-            health_status = "Healthy"  # Replace with your logic
-            health_status_list.append(health_status)
+            new_data = np.array([[data.heart_rate, data.blood_pressure, data.stress_level, data.weight]])
+            new_data = scaler.transform(new_data)
+            predicted_risk = model.predict(new_data)
+            health_status = "Healthy" if predicted_risk <= 0.5 else "At Risk"
+            health_status_list.append((predicted_risk, health_status))
 
-        # Zip the health_data and health_status_list
         zipped_data = zip(health_data, health_status_list)
 
         plot_filename = create_health_data_plot(health_data)
