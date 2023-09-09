@@ -1,4 +1,6 @@
 import os
+import matplotlib
+matplotlib.use('Agg')  # Use Agg backend (non-GUI) for Matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from flask import Flask, render_template, request, redirect, url_for, session, Response, send_from_directory, make_response, jsonify
@@ -6,23 +8,36 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 import csv
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, time
 import pandas as pd
 import numpy as np
-# from sklearn.preprocessing import StandardScaler
-# from tensorflow import keras
+from sklearn.preprocessing import StandardScaler
 
-
+# from app import db
 app = Flask(__name__)
-
 basedir = os.path.abspath(os.path.dirname(__file__))
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://darshan029:D%40rsh%40n029@localhost:3306/healthub'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = "my_secret_key"
 
-app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
+# app = Flask(__name__)
+# from app import db
+# # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthub.db'  # Use SQLite database
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SECRET_KEY'] = "my_secret_key"
+# basedir = os.path.abspath(os.path.dirname(__file__))
+# # app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
+
+
+# # Configure the SQLAlchemy database URI to store the database file in the base directory
+# # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthub.db")}'
 db = SQLAlchemy(app)
+static_folder = os.path.join(os.path.dirname(__file__), 'static')
+
+# Create the SQLAlchemy instance if it doesn't exist
+if 'db' not in locals():
+    db = SQLAlchemy(app)
 
 class USERS(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,28 +62,12 @@ class HealthData(db.Model):
     def __repr__(self):
         return f'<HealthData {self.id}>'
 
-# # Define and compile the predictive model
-# def create_predictive_model(input_shape):
-#     model = keras.Sequential([
-#         keras.layers.Dense(64, activation='relu', input_shape=(input_shape,)),
-#         keras.layers.Dense(32, activation='relu'),
-#         keras.layers.Dense(1, activation='sigmoid')
-#     ])
 
-#     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-#     return model
-
-# # Load the trained predictive model
-# predictive_model = create_predictive_model(3)  # Input shape depends on your features
-# predictive_model.load_weights('model_weights.h5')  # Load model weights
-
-# Home Route
 @app.route('/')
 def home():
     return render_template('home.html')
 
-# Register Route
+
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if request.method == 'POST':
@@ -88,7 +87,7 @@ def register():
 
     return render_template('register.html')
 
-# Login Route
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
@@ -101,7 +100,7 @@ def login():
 
     return render_template('login.html')
 
-# Dashboard Route
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     email = session.get('email')
@@ -112,8 +111,14 @@ def dashboard():
             blood_pressure = request.form.get('bloodPressure')
             stress_level = request.form.get('stressLevel')
             weight = request.form.get('weight')
-            date = request.form.get('date')
-            time = request.form.get('time')
+            date_str = request.form.get('date')
+            time_str = request.form.get('time')  # Get time as a string
+
+            # Convert date string to a Python date object
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+            # Convert time string to a Python time object
+            time = datetime.strptime(time_str, '%H:%M').time()
 
             health_data = HealthData(
                 user_id=user.id,
@@ -122,7 +127,7 @@ def dashboard():
                 stress_level=stress_level,
                 weight=weight,
                 date=date,
-                time=time
+                time=time,  # Use the converted time
             )
             db.session.add(health_data)
             db.session.commit()
@@ -147,7 +152,7 @@ def dashboard():
 
     return redirect(url_for('login'))
 
-# Real-time prediction route
+
 @app.route('/predict', methods=['POST'])
 def predict_health_risk():
     if request.method == 'POST':
@@ -193,7 +198,6 @@ def predict_health_risk():
             return jsonify({"error": str(e)}), 400
 
 
-# Download CSV file locally
 @app.route('/download_csv', methods=['POST'])
 def download_csv():
     email = session.get('email')
@@ -219,7 +223,7 @@ def download_csv():
 
     return redirect(url_for('login'))
 
-# Serve static files with no-cache headers
+
 @app.route('/static/<filename>')
 def serve_static(filename):
     response = make_response(send_from_directory('static', filename))
@@ -228,9 +232,8 @@ def serve_static(filename):
     response.headers['Expires'] = '0'
     return response
 
-# For data visualization
+
 def create_health_data_plot(health_data):
-    
     # Extract relevant data for the plots
     dates = [data.date for data in health_data]
     heart_rates = [data.heart_rate for data in health_data]
@@ -271,12 +274,13 @@ def create_health_data_plot(health_data):
     plt.tight_layout()
 
     # Save the plot to a temporary file
-    plot_filename = "static/temp_plot.png"
+    # plot_filename = "static/temp_plot.png"
+    plot_filename = os.path.join(static_folder, 'temp_plot.png')
     plt.savefig(plot_filename)
 
     return plot_filename
 
-# Function to calculate health score based on user's data
+
 def calculate_health_score(health_data):
     # You can define your own algorithm to calculate the health score here
     # For example, you can assign scores to different health parameters and calculate a total score
@@ -288,7 +292,7 @@ def calculate_health_score(health_data):
         pass
     return health_score
 
-# Logout Route
+
 @app.route('/logout')
 def logout():
     session.pop('email', None)
